@@ -1,0 +1,5 @@
+/* Remove decoration for list items */
+li {
+    list-style: none;
+    text-align: left;
+}
