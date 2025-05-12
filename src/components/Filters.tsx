@@ -1,43 +1,64 @@
-import React, { useState } from "react";
+import React, { useEffect, useReducer } from "react";
 
 interface FiltersProps {
-  onApplyFilters: (filters: { [key: string]: string | number }) => void;
+  onFiltersChange: (filters: { [key: string]: string | number }) => void;
 }
 
-const Filters: React.FC<FiltersProps> = ({ onApplyFilters }) => {
-  const [keyword, setKeyword] = useState("");
-  const [minPrice, setMinPrice] = useState<number | "">("");
-  const [maxPrice, setMaxPrice] = useState<number | "">("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+interface FiltersState {
+  keyword: string;
+  minPrice: number | "";
+  maxPrice: number | "";
+  startDate: string;
+  endDate: string;
+}
 
-  const handleApplyFilters = () => {
+type FiltersAction =
+  | { type: "SET_KEYWORD"; payload: string }
+  | { type: "SET_MIN_PRICE"; payload: number | "" }
+  | { type: "SET_MAX_PRICE"; payload: number | "" }
+  | { type: "SET_START_DATE"; payload: string }
+  | { type: "SET_END_DATE"; payload: string };
+
+const initialState: FiltersState = {
+  keyword: "",
+  minPrice: "",
+  maxPrice: "",
+  startDate: "",
+  endDate: "",
+};
+
+const filtersReducer = (
+  state: FiltersState,
+  action: FiltersAction
+): FiltersState => {
+  switch (action.type) {
+    case "SET_KEYWORD":
+      return { ...state, keyword: action.payload };
+    case "SET_MIN_PRICE":
+      return { ...state, minPrice: action.payload };
+    case "SET_MAX_PRICE":
+      return { ...state, maxPrice: action.payload };
+    case "SET_START_DATE":
+      return { ...state, startDate: action.payload };
+    case "SET_END_DATE":
+      return { ...state, endDate: action.payload };
+    default:
+      return state;
+  }
+};
+
+const Filters: React.FC<FiltersProps> = ({ onFiltersChange }) => {
+  const [state, dispatch] = useReducer(filtersReducer, initialState);
+
+  useEffect(() => {
     const filters: { [key: string]: string | number } = {};
-    if (keyword) filters.keyword = keyword;
-    if (minPrice) filters.minPrice = minPrice;
-    if (maxPrice) filters.maxPrice = maxPrice;
-    if (startDate) filters.startDate = startDate;
-    if (endDate) filters.endDate = endDate;
-    onApplyFilters(filters);
-  };
-
-  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newStartDate = e.target.value;
-    if (endDate && new Date(newStartDate) > new Date(endDate)) {
-      alert("Start date cannot be later than end date.");
-    } else {
-      setStartDate(newStartDate);
-    }
-  };
-
-  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEndDate = e.target.value;
-    if (startDate && new Date(newEndDate) < new Date(startDate)) {
-      alert("End date cannot be earlier than start date.");
-    } else {
-      setEndDate(newEndDate);
-    }
-  };
+    if (state.keyword) filters.keyword = state.keyword;
+    if (state.minPrice) filters.minPrice = state.minPrice;
+    if (state.maxPrice) filters.maxPrice = state.maxPrice;
+    if (state.startDate) filters.startDate = state.startDate;
+    if (state.endDate) filters.endDate = state.endDate;
+    onFiltersChange(filters);
+  }, [state, onFiltersChange]);
 
   return (
     <div className="filters">
@@ -46,8 +67,10 @@ const Filters: React.FC<FiltersProps> = ({ onApplyFilters }) => {
         <input
           type="text"
           id="keyword"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
+          value={state.keyword}
+          onChange={(e) =>
+            dispatch({ type: "SET_KEYWORD", payload: e.target.value })
+          }
         />
       </div>
       <div>
@@ -55,8 +78,10 @@ const Filters: React.FC<FiltersProps> = ({ onApplyFilters }) => {
         <input
           type="date"
           id="startDate"
-          value={startDate}
-          onChange={handleStartDateChange}
+          value={state.startDate}
+          onChange={(e) =>
+            dispatch({ type: "SET_START_DATE", payload: e.target.value })
+          }
         />
       </div>
       <div>
@@ -64,8 +89,10 @@ const Filters: React.FC<FiltersProps> = ({ onApplyFilters }) => {
         <input
           type="date"
           id="endDate"
-          value={endDate}
-          onChange={handleEndDateChange}
+          value={state.endDate}
+          onChange={(e) =>
+            dispatch({ type: "SET_END_DATE", payload: e.target.value })
+          }
         />
       </div>
       <div>
@@ -73,8 +100,13 @@ const Filters: React.FC<FiltersProps> = ({ onApplyFilters }) => {
         <input
           type="number"
           id="minPrice"
-          value={minPrice}
-          onChange={(e) => setMinPrice(Number(e.target.value) || "")}
+          value={state.minPrice}
+          onChange={(e) =>
+            dispatch({
+              type: "SET_MIN_PRICE",
+              payload: Number(e.target.value) || "",
+            })
+          }
         />
       </div>
       <div>
@@ -82,11 +114,15 @@ const Filters: React.FC<FiltersProps> = ({ onApplyFilters }) => {
         <input
           type="number"
           id="maxPrice"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value) || "")}
+          value={state.maxPrice}
+          onChange={(e) =>
+            dispatch({
+              type: "SET_MAX_PRICE",
+              payload: Number(e.target.value) || "",
+            })
+          }
         />
       </div>
-      <button onClick={handleApplyFilters}>Apply Filters</button>
     </div>
   );
 };

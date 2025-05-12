@@ -1,42 +1,43 @@
 import React, { useState } from "react";
-import { customers } from "../assets/customerConfig"; // Adjust the path as needed
+import { customers } from "../assets/customerConfig";
 import "./Selection.css";
-
-// Ensure customers is typed with the Customer interface
-const typedCustomers: Customer[] = customers.map((customer) => ({
-  ...customer,
-  id: Number(customer.id),
-}));
 
 interface Customer {
   id: number;
   name: string;
 }
 
-const Selection: React.FC = () => {
+interface SelectionProps {
+  onSelectionChange: (selectedCustomers: number[]) => void;
+}
+
+const Selection: React.FC<SelectionProps> = ({ onSelectionChange }) => {
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
 
   const handleSelectionChange = (id: number) => {
-    setSelectedCustomers((prev) =>
-      prev.includes(id)
+    setSelectedCustomers((prev) => {
+      const updated = prev.includes(id)
         ? prev.filter((customerId) => customerId !== id)
-        : [...prev, id]
-    );
+        : [...prev, id];
+      onSelectionChange(updated);
+      return updated;
+    });
   };
 
   const handleSelectAll = () => {
-    if (selectedCustomers.length === typedCustomers.length) {
-      setSelectedCustomers([]);
-    } else {
-      setSelectedCustomers(typedCustomers.map((customer) => customer.id));
-    }
+    const updated =
+      selectedCustomers.length === customers.length
+        ? []
+        : customers.map((customer) => customer.id);
+    setSelectedCustomers(updated);
+    onSelectionChange(updated);
   };
 
   return (
     <div>
       <h3>Select Customers</h3>
       <ul>
-        {typedCustomers.map((customer) => (
+        {customers.map((customer) => (
           <li key={customer.id}>
             <label className="customer-label">
               <input
